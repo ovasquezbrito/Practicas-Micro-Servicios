@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"log"
-	"time"
 
 	"google.golang.org/grpc/codes"
 
@@ -42,7 +41,7 @@ func (server *LaptopServer) CreateLaptop(
 	}
 
 	// some heavy processing
-	time.Sleep(6 * time.Second)
+	// time.Sleep(6 * time.Second)
 
 	// cuando el cliente interrumpe la petición
 
@@ -68,8 +67,39 @@ func (server *LaptopServer) CreateLaptop(
 	}
 
 	log.Printf("saved laptop with id: %s", laptop.Id)
+
 	res := &pb.CreateLaptopResponse{
 		Id: laptop.Id,
 	}
 	return res, nil
+}
+
+// SearchLaptop is a server-streaming RPC to search for laptops
+func (server *LaptopServer) SearchLaptop(
+	req *pb.SearchLaptopRequest,
+	stream pb.LaptopService_SearchLaptopServer,
+) error {
+	filter := req.GetFilter()
+	log.Printf("recive a search-lapto reques with filter: %v", filter)
+
+	err := server.Store.Search(
+		stream.Context(),
+		filter,
+		func(laptop *pb.Laptop) error {
+			res := &pb.SearchLaptopResponse{Laptop: laptop}
+			err := stream.Send(res)
+			if err != nil {
+				return err
+			}
+
+			log.Printf("sent laptop with id: %s", laptop.GetId())
+			return nil
+		},
+	)
+
+	if err != nil {
+		return status.Errorf(codes.Internal, "unexpected error: %v", err)
+	}
+
+	return nil
 }
