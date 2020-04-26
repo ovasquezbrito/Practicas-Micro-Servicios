@@ -12,3 +12,8 @@ client:
 
 test:
 	go test -cover -race ./...
+
+install: 
+	go get -u github.com/jinzhu/copier
+	go get -u github.com/google/uuid
+	github.com/stretchr/testify/require
