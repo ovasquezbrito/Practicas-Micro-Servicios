@@ -13,6 +13,8 @@ client:
 test:
 	go test -cover -race ./...
 
+.PHONY: gen clean server client test
+
 install: 
 	go get -u github.com/jinzhu/copier
 	go get -u github.com/google/uuid
